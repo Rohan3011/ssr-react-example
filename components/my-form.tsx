@@ -1,61 +1,120 @@
 "use client";
 
-import React from "react";
-import * as Form from "@radix-ui/react-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-const MyForm = () => (
-  <Form.Root className="w-full max-w-md">
-    <Form.Field className="grid mb-[10px]" name="email">
-      <div className="flex items-baseline justify-between">
-        <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
-          Email
-        </Form.Label>
-        <Form.Message
-          className="text-[13px] text-white opacity-[0.8]"
-          match="valueMissing"
-        >
-          Please enter your email
-        </Form.Message>
-        <Form.Message
-          className="text-[13px] text-white opacity-[0.8]"
-          match="typeMismatch"
-        >
-          Please provide a valid email
-        </Form.Message>
-      </div>
-      <Form.Control asChild>
-        <input
-          className="box-border w-full inline-flex h-[35px] appearance-none items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none text-white shadow-[0_0_0_1px] shadow-neutral-500 outline-none hover:shadow-[0_0_0_1px_#818cf8] focus:shadow-[0_0_0_2px_#818cf8] selection:color-white selection:bg-indigo-600 bg-neutral-800"
-          type="email"
-          required
-        />
-      </Form.Control>
-    </Form.Field>
-    <Form.Field className="grid mb-[10px]" name="question">
-      <div className="flex items-baseline justify-between">
-        <Form.Label className="text-[15px] font-medium leading-[35px] text-white">
-          Question
-        </Form.Label>
-        <Form.Message
-          className="text-[13px] text-white opacity-[0.8]"
-          match="valueMissing"
-        >
-          Please enter a question
-        </Form.Message>
-      </div>
-      <Form.Control asChild>
-        <textarea
-          className="box-border w-full bg-neutral-800 shadow-neutral-500 inline-flex appearance-none items-center justify-center rounded-[4px] p-[10px] text-[15px] leading-none text-white shadow-[0_0_0_1px] outline-none hover:shadow-[0_0_0_1px_#818cf8] focus:shadow-[0_0_0_2px_#818cf8] selection:color-white selection:bg-indigo-600 resize-none"
-          required
-        />
-      </Form.Control>
-    </Form.Field>
-    <Form.Submit asChild>
-      <button className="box-border w-full bg-white py-2 rounded mt-4 hover:bg-opacity-90  hover:shadow-[0_0_0_1px_#818cf8] focus:shadow-[0_0_0_2px_#818cf8] font-medium">
-        Post question
-      </button>
-    </Form.Submit>
-  </Form.Root>
-);
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Textarea } from "./ui/textarea";
 
-export default MyForm;
+const formSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  author: z.string(),
+  tags: z.array(z.string()),
+  published: z.boolean(),
+  date: z.date().optional(),
+});
+
+export function ProfileForm() {
+  const form = useForm<z.infer<typeof formSchema>>({
+    // @ts-ignore
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "My Awesome Blog Post",
+      content: "This is the content of my blog post...",
+      author: "John Doe",
+      tags: ["technology", "programming"],
+      published: true,
+      date: new Date("2023-08-20"),
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    console.log(values);
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 w-full max-w-md"
+      >
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem className="grid grid-cols-4 items-baseline gap-4 ">
+              <FormLabel>Title</FormLabel>
+              <div className="col-span-3 space-y-4">
+                <FormControl className="w-full">
+                  <Input placeholder="shadcn" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is your public display name.
+                </FormDescription>
+              </div>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="author"
+          render={({ field }) => (
+            <FormItem className="grid grid-cols-4 items-baseline gap-4">
+              <FormLabel>Author</FormLabel>
+              <div className="col-span-3 space-y-4">
+                <FormControl className="w-full">
+                  <Input placeholder="shadcn" {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is your public display name.
+                </FormDescription>
+              </div>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem className="grid grid-cols-4 items-baseline gap-4">
+              <FormLabel>Content</FormLabel>
+              <div className="col-span-3 space-y-4">
+                <FormControl className="w-full">
+                  <Textarea placeholder="Type your message here." />
+                </FormControl>
+                <FormDescription>
+                  This is your public display name.
+                </FormDescription>
+              </div>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end items-center gap-4">
+          <Button variant="outline">Cancel</Button>
+          <Button type="submit">Submit</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
