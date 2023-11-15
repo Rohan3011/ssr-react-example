@@ -20,15 +20,7 @@ import { user } from "@/lib/temp";
 import { Post } from "@prisma/client";
 import { addPost } from "@/app/_actions";
 import { revalidatePath } from "next/cache";
-
-const formSchema = z.object({
-  title: z.string(),
-  body: z.string(),
-  authorId: z.string(),
-  tags: z.array(z.string()),
-  published: z.boolean(),
-  date: z.date().optional(),
-});
+import { formSchema } from "@/schemas/form-schema";
 
 export type PostType = z.infer<typeof formSchema>;
 
