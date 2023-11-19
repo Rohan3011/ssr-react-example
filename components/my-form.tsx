@@ -16,41 +16,46 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { Textarea } from "./ui/textarea";
+import { user } from "@/lib/temp";
+import { Post } from "@prisma/client";
+import { addPost } from "@/app/_actions";
+import { revalidatePath } from "next/cache";
+import { formSchema } from "@/schemas/form-schema";
 
-const formSchema = z.object({
-  title: z.string(),
-  content: z.string(),
-  author: z.string(),
-  tags: z.array(z.string()),
-  published: z.boolean(),
-  date: z.date().optional(),
-});
+export type PostType = z.infer<typeof formSchema>;
 
-export function ProfileForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+export function PostForm() {
+  const form = useForm<PostType>({
     // @ts-ignore
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "My Awesome Blog Post",
-      content: "This is the content of my blog post...",
-      author: "John Doe",
-      tags: ["technology", "programming"],
+      title: "",
+      body: "",
+      authorId: user.id,
+      tags: [],
       published: true,
       date: new Date("2023-08-20"),
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function handleSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
+    const data = {
+      title: values.title,
+      body: values.body,
+      slug: slugify(values.title),
+      authorId: values.authorId,
+    };
+
+    const res = await addPost(data);
   }
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8 w-full max-w-md"
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-8 w-full max-w-md p-4 rounded"
       >
         <FormField
           control={form.control}
@@ -62,16 +67,13 @@ export function ProfileForm() {
                 <FormControl className="w-full">
                   <Input placeholder="shadcn" {...field} />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
               </div>
 
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="author"
           render={({ field }) => (
@@ -89,14 +91,14 @@ export function ProfileForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}
-          name="content"
+          name="body"
           render={({ field }) => (
             <FormItem className="grid grid-cols-4 items-baseline gap-4">
-              <FormLabel>Content</FormLabel>
+              <FormLabel>Body</FormLabel>
               <div className="col-span-3 space-y-4">
                 <FormControl className="w-full">
                   <Textarea placeholder="Type your message here." />
@@ -117,4 +119,12 @@ export function ProfileForm() {
       </form>
     </Form>
   );
+}
+
+function slugify(title: string) {
+  return title
+    .toLowerCase() // Convert the title to lowercase letters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w-]+/g, "") // Remove non-alphanumeric characters
+    .replace(/-+$/g, ""); // Remove trailing hyphens
 }
