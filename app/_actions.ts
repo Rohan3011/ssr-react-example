@@ -1,6 +1,5 @@
 "use server";
 
-import { PostType } from "@/components/my-form";
 import prisma from "@/lib/prisma";
 import { Post } from "@prisma/client";
 
